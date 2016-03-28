@@ -1,6 +1,13 @@
 package models
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"log"
+
+	"github.com/contetto/micro-mongo"
+	"github.com/micro/go-micro"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+)
 
 // User model defines the user attributes
 //swagger:model User
@@ -34,4 +41,52 @@ type User struct {
 	Role                string        `json:"Role" valid:"ascii,required"`
 	IsEnabled           bool          `json:"IsEnabled"`
 	IsVerified          bool          `json:"IsVerified"`
+}
+
+type UserModel struct {
+	session  *mongodb.MongoSession
+	UserColl *mgo.Collection
+}
+
+func NewUserModel(service micro.Service) *UserModel {
+	session, err := mongodb.New(service)
+	if err != nil {
+		log.Fatal("This service can not run without a mongoDB\n", err)
+	}
+
+	return &UserModel{
+		session:  session,
+		UserColl: session.GetCollection("users"),
+	}
+}
+
+func (u *UserModel) Get(id string) (User, error) {
+	var user User
+
+	err := u.UserColl.FindId(bson.ObjectIdHex(id)).One(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (u *UserModel) GetFromAppID(appID string) (User, error) {
+	var user User
+
+	err := u.UserColl.Find(bson.M{"appid": appID}).One(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (u *UserModel) Insert(user *User) error {
+	err := u.UserColl.Insert(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

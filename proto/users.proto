@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+service Users {
+	rpc Get(GetReq) returns (User) {}
+	rpc Post(User) returns (User) {}
+}
+
+message User {
+	string ID = 1;
+	string FirstName = 2;
+	string LastName = 3;
+	string Email = 4;
+	string Password = 5;
+	string AppID = 6;
+	string AppSecret = 7;
+	string Platform = 8;
+	string Role = 9;
+		
+}
+
+message GetReq {
+	string ID = 1;
+}

@@ -4,41 +4,24 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/contetto/go-micro"
+	"github.com/contetto/user-service/models"
+	proto "github.com/contetto/user-service/proto"
 	"github.com/micro/cli"
-	proto "github.com/micro/go-micro/examples/service/proto"
-	"golang.org/x/net/context"
+	"github.com/micro/go-micro"
 )
 
-/*
+const ServiceName = "user-service"
 
-Example usage of top level service initialisation
-
-*/
-
-// Setup and the client
-func runClient(service micro.Service) {
-	// Create new greeter client
-	greeter := proto.NewUsersClient("greeter", service.Client())
-
-	// Call the greeter
-	rsp, err := greeter.Hello(context.TODO(), &proto.HelloRequest{Name: "John"})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Print response
-	fmt.Println(rsp.Greeting)
-}
+var service micro.Service
+var userModel *models.UserModel
 
 func main() {
 	// Create a new service. Optionally include some options here.
-	service := micro.NewService(
-		micro.Name("greeter"),
-		micro.Version("latest"),
+	service = micro.NewService(
+		micro.Name(ServiceName),
 		micro.Metadata(map[string]string{
-			"type": "helloworld",
+			"MONGO_URL": "localhost:27017",
+			"MONGO_DB":  "test",
 		}),
 
 		// Setup some flags. Specify --client to run the client
@@ -50,6 +33,9 @@ func main() {
 			Usage: "Launch the client",
 		}),
 	)
+
+	// Initialize db model
+	userModel = models.NewUserModel(service)
 
 	// Init will parse the command line flags. Any flags set will
 	// override the above settings. Options defined here will
